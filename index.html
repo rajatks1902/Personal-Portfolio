@@ -17,6 +17,18 @@
   <meta property="og:url" content="https://rajatks1902.github.io/Personal-Portfolio/" />
   <meta property="og:image" content="https://avatars.githubusercontent.com/u/81739533?v=4" />
   <title>Rajat Kumar Singh | Backend Engineer</title>
+  <script>
+    (function () {
+      var savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem("portfolio-theme");
+      } catch (error) {
+        savedTheme = null;
+      }
+      var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,6 +46,7 @@
 </head>
 
 <body>
+  <canvas id="code-rain" class="code-rain" aria-hidden="true"></canvas>
   <header class="site-header">
     <nav class="nav-shell" aria-label="Primary navigation">
       <a class="brand" href="#top">Rajat Kumar Singh</a>
@@ -44,6 +57,10 @@
         <a href="#certificates">Certificates</a>
         <a href="#contact">Contact</a>
       </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+        <span>Dark</span>
+      </button>
     </nav>
   </header>
 
@@ -52,7 +69,11 @@
       <div class="shell hero-grid">
         <div class="hero-copy">
           <p class="eyebrow">Software Development Engineer II @ Thales DIS</p>
-          <h1>Backend engineer building reliable Java microservices at scale.</h1>
+          <h1 class="hero-title">Backend engineer building reliable Java microservices at scale</h1>
+          <div class="tech-rotator" aria-label="Rotating technical skills">
+            <span class="tech-prefix">Core stack</span>
+            <span class="tech-value" id="techRotator" aria-live="polite">Java</span>
+          </div>
           <p class="hero-text">
             I work on distributed telecom platforms with Java, Spring Boot, Quarkus,
             Kafka, Cassandra, Spark, Docker, and Kubernetes. My focus is clean
@@ -444,5 +465,110 @@
       </div>
     </div>
   </footer>
+  <script>
+    (function () {
+      var technologies = [
+        "Java",
+        "Spring Boot",
+        "Kafka",
+        "Cassandra",
+        "Redis",
+        "Quarkus",
+        "Docker",
+        "Kubernetes",
+        "Apache Spark",
+        "System Design"
+      ];
+
+      var techIndex = 0;
+      var techNode = document.getElementById("techRotator");
+
+      function rotateTech() {
+        if (!techNode) return;
+        techNode.classList.add("is-changing");
+        window.setTimeout(function () {
+          techIndex = (techIndex + 1) % technologies.length;
+          techNode.textContent = technologies[techIndex];
+          techNode.classList.remove("is-changing");
+        }, 220);
+      }
+
+      window.setInterval(rotateTech, 2400);
+
+      var root = document.documentElement;
+      var themeToggle = document.getElementById("themeToggle");
+
+      function paintThemeButton() {
+        if (!themeToggle) return;
+        var isDark = root.dataset.theme === "dark";
+        themeToggle.innerHTML = isDark
+          ? '<i class="fa-solid fa-sun" aria-hidden="true"></i><span>Light</span>'
+          : '<i class="fa-solid fa-moon" aria-hidden="true"></i><span>Dark</span>';
+      }
+
+      if (themeToggle) {
+        themeToggle.addEventListener("click", function () {
+          var nextTheme = root.dataset.theme === "dark" ? "light" : "dark";
+          root.dataset.theme = nextTheme;
+          try {
+            localStorage.setItem("portfolio-theme", nextTheme);
+          } catch (error) {
+            // Theme still changes for the current session if storage is blocked.
+          }
+          paintThemeButton();
+        });
+        paintThemeButton();
+      }
+
+      var canvas = document.getElementById("code-rain");
+      var ctx = canvas && canvas.getContext("2d");
+      var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!canvas || !ctx || reduceMotion) return;
+
+      var glyphs = ["Java", "Kafka", "Redis", "Spring", "0101", "API", "SQL", "LLD", "HLD", "{ }", "< />"];
+      var columns = [];
+      var fontSize = 16;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        var count = Math.ceil(canvas.width / fontSize);
+        columns = Array.from({ length: count }, function () {
+          return Math.floor(Math.random() * -canvas.height / fontSize);
+        });
+      }
+
+      function codeColor() {
+        return root.dataset.theme === "dark"
+          ? "rgba(125, 211, 252, 0.42)"
+          : "rgba(37, 99, 235, 0.25)";
+      }
+
+      function drawRain() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = fontSize + "px Menlo, Monaco, Consolas, monospace";
+        ctx.fillStyle = codeColor();
+
+        for (var i = 0; i < columns.length; i += 1) {
+          var text = glyphs[(Math.random() * glyphs.length) | 0];
+          var x = i * fontSize;
+          var y = columns[i] * fontSize;
+          ctx.fillText(text, x, y);
+
+          if (y > canvas.height + Math.random() * 900) {
+            columns[i] = Math.floor(Math.random() * -20);
+          } else {
+            columns[i] += 0.55;
+          }
+        }
+
+        window.requestAnimationFrame(drawRain);
+      }
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+      drawRain();
+    })();
+  </script>
 </body>
 </html>
